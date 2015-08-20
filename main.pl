@@ -4,7 +4,7 @@ use strict;
 use v5.10;
 use Data::Dumper;
 
-my $linkregex = qr/href\=(\"|\')(?<file>[^"']*)(\"|\')/;
+my $linkregex = /href\=(\"|\')(?<file>[^\"\']*)(\"|\')/;
 
 my $extensionregex = qr/\.(jpeg|JPG|jpg|png|PNG|css|icon)(\"|\')/;
 
@@ -26,19 +26,20 @@ my $path= $ARGV[0];
 while ($#parents >= 0){
 
     my $current_parent = pop @parents;
-    my $wget = `wget -O- $current_parent 2>&1`;
+    my $wget = `wget $current_parent 2>&1`;
     unless ($wget =~ $httpRequestOk)
     {
-        my $wget = `wget -O- $path.$current_parent 2>&1`;
+        say $wget;
+        my $wget = `wget -q $path.$current_parent 2>&1`;
         unless ($wget =~ $httpRequestOk)
         {
             say 'current path was not retrieve!';
-            say $current_parent.'or this path'.$path.$current_parent;
+            say $current_parent.' or this path '.$path.$current_parent;
             next;
         }
     }
-
-    my $linewget = `wget $current_parent | grep \"href\"`;
+    
+    my $linewget = `echo '$wget' | grep "$linkregex"`;
     say 'line get is : '.$linewget;
     my @lines = split(/\n/, $linewget);
     say    Dumper(@lines); 
